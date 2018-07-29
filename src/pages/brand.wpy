@@ -1,0 +1,373 @@
+<style lang="less">
+  @import "../styles/mixin.less";
+  @base: #546c78;
+  .container {
+    padding: 0 30rpx;
+  }
+  .header .brand-img {
+    display: block;
+    width: 245rpx;
+    height: 245rpx;
+    margin: 40rpx auto;
+    border-radius: 50%;
+  }
+  .header .brand-name {
+    display: block;
+    color: #4d4d4d;
+    font-size: 44rpx;
+    text-align: center;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 52rpx;
+  }
+  .header .brand-desc {
+    display: block;
+    padding: 0 40rpx;
+    color: #5f5f5f;
+    font-size: 36rpx;
+    line-height: 1.5;
+    font-weight: bold;
+  }
+  .header .brand-desc.ellipsis {
+    .lines-ellipsis(5);
+  }
+  .header .open {
+    display: block;
+    color: #5f5f5f;
+    font-weight: bold;
+    font-size: 40rpx;
+    text-align: center;
+    margin-top: 26rpx;
+  }
+  .brand-header {
+    border-bottom: 2px solid @base;
+    margin-top: 45rpx;
+  }
+  .brand-header text {
+    display: inline-block;
+    color: @base;
+    margin: 0 0 15rpx 40rpx;
+    font-size: 36rpx;
+    font-weight: bold;
+  }
+  .brand-header button {
+    float: right;
+    width: 88rpx;
+    height: 40rpx;
+    line-height: 40rpx;
+    color: #fff;
+    font-size: 28rpx;
+    text-align: center;
+    background: @base;
+    padding: 0;
+    border-radius: 20rpx;
+  }
+  .brand-series button {
+    width: 100%;
+    height: 44rpx;
+    line-height: 44rpx;
+    padding: 0 14rpx;
+    box-sizing: border-box;
+    margin: 16rpx auto 24rpx;
+    background: #fff;
+    color: #7d8e97;
+    font-size: 28rpx;
+    text-align: center;
+    &.active {
+      background: @base;
+      color: #fff;
+    }
+  }
+  .series-list .series-box {
+    .line-ellipsis();
+    display: inline-block;
+    width: 320rpx;
+    height: 42rpx;
+    font-size: 28rpx;
+    background: #fff;
+    border: 2px solid @base;
+    margin-bottom: 16rpx;
+    border-radius: 5px;
+    color: #7d8e97;
+    padding: 0 25rpx;
+    box-sizing: border-box;
+    &:nth-child(odd) {
+      margin-right: 28rpx;
+    }
+    &.active {
+      background: @base;
+      color: #fff;
+    }
+  }
+</style>
+
+<template>
+  <view class="container">
+    <!-- <view class="header" wx:if="{{isShowHeader}}">
+      <image src="{{brandInfo.imgurl}}" class="brand-img" mode="aspectFill"></image>
+      <text class="brand-name">{{brandInfo.cname}}</text>
+      <text class="brand-desc" :class="{ 'ellipsis': isEllipsis }">{{brandInfo.direction}}</text>
+      <text class="open" @tap="openDesc">{{openDescText}}</text>
+    </view> -->
+    <view class="content">
+      <view class="brand-header">
+        <text>主石大小</text>
+        <button @tap="openSeries">{{openSeriesText}}</button>
+      </view>
+      <view class="brand-series">
+        <button class="{{allSeriesActive?'active':''}}"
+                @tap="tapAllSeries">所有系列</button>
+        <view class="series-list" wx:if="{{isShowSeries}}">
+          <view class="series-box {{item.seriesActive? 'active':''}}"
+                wx:for="{{series}}"
+                wx:key="item"
+                wx:for-item="item"
+                data-seriesid="{{item.seriesId}}"
+                @tap="tapSeries">
+            <text>{{item.seriesName}}</text>
+          </view>
+        </view>
+      </view>
+      <productlist :product.sync="product"></productlist>
+      <!--加载更多时动画-->
+      <bottomLoadMore :show.sync="showLoading" message="正在加载"></bottomLoadMore>
+      <!--暂无数据显示-->
+      <placeholder :show.sync="isEmpty" message="暂无发现数据"></placeholder>
+      <!-- 回到首页 -->
+      <backhome></backhome>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Productlist from '../components/productlist'
+  import BottomLoadMore from '../components/common/bottomLoadMore'
+  import Placeholder from '../components/common/placeholder'
+  import BackHome from '../components/common/backHome'
+  import {getTypes, imgUrlPre, noImgUrl, getGoodsList} from '../common/api'
+  import tip from '../utils/tip'
+  import {fmoney} from '../utils/utils'
+
+  const LIMIT = 10
+
+  export default class Brand extends wepy.page {
+    config = {
+      navigationBarTitleText: '产品页'
+    }
+    data = {
+      brandInfo: null, // 品牌信息
+      series: [], // 系列信息
+      product: [], // 商品信息
+      isEllipsis: true, // 是否显示省略号
+      openDescText: '展开',
+      openSeriesText: '展开',
+      isShowHeader: true, // 是否显示头部
+      isShowSeries: false, // 是否显示系列
+      allSeriesActive: true, // 控制所有系列按钮的样式
+      optionId: '',
+      brandId: '', // 品牌uuid
+      seriesid: '', // 系列id
+      isEmpty: false, // 是否有数据
+      currentPage: 1, // 当前页面
+      offset: 0, // 从第几条起
+      totalPage: 0, // 总页数
+      showLoading: false, // 是否显示底部loading
+      imgUrlPre: imgUrlPre,
+      noImgUrl: noImgUrl
+    }
+    components = {
+      productlist: Productlist,
+      bottomLoadMore: BottomLoadMore,
+      placeholder: Placeholder,
+      backhome: BackHome
+    }
+    onLoad (option) {
+      this._getTypes(option.typeid)
+      // this.getGoods(option.uuid)
+      // this.optionId = option.id
+      // this.brandId = option.uuid
+      this.typeId = option.typeid
+    }
+    methods = {
+      // 分享
+      onShareAppMessage: function(res) {
+        if (res.from === 'button') {
+          // 来自页面内转发按钮
+          console.log(res.target)
+        }
+        return {
+          title: '高级珠宝图册',
+          path: `pages/brand?id=${this.optionId}&uuid=${this.brandId}`,
+          success: function(res) {
+            // 转发成功
+          },
+          fail: function(res) {
+            // 转发失败
+          }
+        }
+      },
+      // 点击所有系列
+      tapAllSeries (e) {
+        this.allSeriesActive = true
+        this.seriesid = ''
+        for (var i = 0; i < this.series.length; i++) {
+          this.series[i].seriesActive = false
+        }
+        this.getGoods(this.brandId)
+      },
+      // 点击某个系列
+      tapSeries (e) {
+        // 控制样式高亮
+        let seriesId = e.currentTarget.dataset.seriesid
+        this.seriesid = seriesId
+        for (var i = 0; i < this.series.length; i++) {
+          let seriesItem = this.series[i]
+          seriesItem.seriesActive = false
+          this.allSeriesActive = false
+          if (seriesItem.seriesId === seriesId) {
+            seriesItem.seriesActive = true
+          }
+        }
+        // 获取系列对应产品
+        this.getGoods(this.brandId, seriesId)
+      }
+    }
+    // 获取品牌系列信息
+    async _getTypes (id) {
+      const json = await getTypes({
+        query: {
+          typeid: id
+        }
+      })
+      if (json.data.code === 0) {
+        console.log(json.data)
+        let seriesArr = []
+        json.data.data.forEach(item => {
+          seriesArr.push({'seriesId': item.uuid, 'seriesName': item.cname, 'seriesActive': false})
+        })
+        this.series = seriesArr
+        console.log(seriesArr)
+      } else {
+        tip.error(json.data.msg)
+      }
+      this.$apply()
+    }
+    // 获取商品信息
+    async getGoods (brandUuid, seriesUuid = '', offset = 0) {
+      let query
+      if (seriesUuid) {
+        query = {
+          brandUuid: brandUuid,
+          seriesUuid: seriesUuid,
+          offset: offset,
+          limit: LIMIT
+        }
+      } else {
+        query = {
+          brandUuid: brandUuid,
+          offset: offset,
+          limit: LIMIT
+        }
+      }
+      const json = await getGoodsList({
+        query: query
+      })
+      // let seriesArr = []
+      // let productArr = []
+      if (json.data.code === 0) {
+        console.log(json.data)
+        // 总页数
+        this.totalPage = Math.ceil(json.data.data.total / LIMIT)
+        // 数据处理
+        let formatData = this.format(json.data.data.rows)
+        // 数据拼接
+        if (offset === 0) {
+          this.product = formatData
+        } else {
+          this.product = this.product.concat(formatData)
+        }
+        if (json.data.data.total === 0) {
+          console.log('暂无数据')
+          this.isEmpty = true
+        }
+        // if (this.format(productArr).length === 0) {
+        //   this.isEmpty = true
+        //   this.product = []
+        // } else {
+        //   this.isEmpty = false
+        //   this.product = this.format(productArr)
+        // }
+        // 数据处理，get到所有的系列信息
+        // if (!seriesUuid) {
+        //   json.data.data.forEach(item => {
+        //     // seriesArr.push({'seriesId': item.uuid, 'seriesName': item.cname, 'seriesActive': false})
+        //     productArr = productArr.concat(item.goodList)
+        //   })
+        //   // this.series = seriesArr
+        // } else {
+        //   json.data.data.forEach(item => {
+        //     productArr = productArr.concat(item.goodList)
+        //   })
+        // }
+        // if (this.format(productArr).length === 0) {
+        //   this.isEmpty = true
+        //   this.product = []
+        // } else {
+        //   this.isEmpty = false
+        //   this.product = this.format(productArr)
+        // }
+      } else {
+        tip.error(json.data.msg)
+      }
+      this.$apply()
+    }
+    onReachBottom () {
+      let that = this
+      that.showLoading = true
+      if (that.totalPage > that.currentPage) {
+        that.currentPage++
+        that.offset += LIMIT
+        that.getGoods(that.brandId, that.seriesid, that.offset)
+      } else {
+        that.showLoading = false
+      }
+    }
+    // 格式化列表信息
+    format (arr) {
+      var newArr = []
+      arr.forEach((item) => {
+        item.price = fmoney(item.price)
+        try {
+          item.imgurl = item.imgurl ? (imgUrlPre + JSON.parse(item.imgurl)[0].fileUrl) : noImgUrl
+        } catch (err) {
+          console.log(err)
+        }
+        newArr.push(item)
+      })
+      return newArr
+    }
+    // 点击展开品牌描述
+    openDesc (e) {
+      if (this.openDescText === '展开') {
+        this.openDescText = '收起'
+        this.isEllipsis = false
+      } else {
+        this.openDescText = '展开'
+        this.isEllipsis = true
+      }
+    }
+    // 点击展开系列
+    openSeries (e) {
+      if (this.openSeriesText === '展开') {
+        this.openSeriesText = '折叠'
+        this.isShowHeader = false
+        this.isShowSeries = true
+      } else {
+        this.openSeriesText = '展开'
+        this.isShowHeader = true
+        this.isShowSeries = false
+      }
+    }
+  }
+</script>

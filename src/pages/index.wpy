@@ -1,0 +1,101 @@
+<style lang="less">
+image {
+  width: 100%;
+}
+.navs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size: 0;
+  border-top: 1rpx solid rgba(0,0,0,.35);
+  navigator {
+    border-right: 1rpx solid rgba(0,0,0,.35);
+    width: 33.3333%;
+    font-size: 32rpx;
+    display: inline-block;
+    box-sizing: border-box;
+    &:last-child{
+      border-right: 0;
+    }
+    button {
+      border: none;
+    }
+  }
+}
+</style>
+<template>
+  <view class="home">
+    <image src="{{imgUrl}}" binderror="loadImgErr"></image>
+    <view class="navs">
+      <navigator url="/pages/brand?typeid=2"><button plain>女戒</button></navigator>
+      <navigator url="/pages/brand?typeid=3"><button plain>吊坠</button></navigator>
+      <navigator url="/pages/brand?typeid=1"><button plain>男戒</button></navigator>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { getAd, noImgUrl, imgUrlPre } from '@/common/api'
+  import tip from '../utils/tip'
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '首页'
+    }
+    components = {
+    }
+
+    data = {
+      imgUrl: ''
+    }
+
+    computed = {
+    }
+
+    methods = {
+      // 分享
+      onShareAppMessage: function(res) {
+        if (res.from === 'button') {
+          // 来自页面内转发按钮
+          console.log(res.target)
+        }
+        return {
+          title: '高级珠宝图册',
+          path: 'pages/index',
+          success: function(res) {
+            // 转发成功
+          },
+          fail: function(res) {
+            // 转发失败
+          }
+        }
+      },
+      loadImgErr () {
+        this.imgUrl = noImgUrl
+      }
+    }
+
+    events = {
+    }
+
+    onLoad() {
+      this._getAd()
+    }
+    async _getAd () {
+      const json = await getAd({
+        query: {
+          type: '1'
+        }
+      })
+      if (json.data.code === 0) {
+        let imgUrl = json.data.data[0].imgurl
+        this.imgUrl = imgUrl ? (imgUrlPre + JSON.parse(imgUrl)[0].fileUrl) : noImgUrl
+      } else {
+        tip.error(json.data.msg)
+      }
+      this.$apply()
+    }
+  }
+</script>

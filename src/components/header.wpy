@@ -1,0 +1,89 @@
+<style lang="less">
+  .header {
+    padding-top: 20rpx;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+  }
+
+  .userinfo-avatar {
+    width: 72rpx;
+    height: 72rpx;
+    margin-right: 28rpx;
+    border-radius: 50%;
+  }
+
+  .search {
+    width: 460rpx;
+    height: 72rpx;
+    line-height: 72rpx;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    padding-left: 50rpx;
+    background: #fff;
+  }
+  .search-btn {
+    width: 95rpx;
+    height: 72rpx;
+    line-height: 72rpx;
+    padding: 0;
+    border-radius: 0;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background: #4f4f4f;
+    color: #fff;
+    font-size: 28rpx;
+  }
+  .icon-search {
+    position: absolute;
+    top: 40rpx;
+    left: 110rpx;
+    color: #999;
+    font-weight: bolder;
+  }
+</style>
+
+<template>
+  <view class="header">
+    <image class="userinfo-avatar" src="{{ userInfo.avatarUrl }}" background-size="cover"/>
+    <input class="search" @input="input" placeholder="可输入品牌、型号、系列查询" value="{{val}}"/>
+    <span class="iconfont icon-search"></span>
+    <button class="search-btn" @tap="search">搜索</button>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import tip from '../utils/tip'
+
+  export default class Header extends wepy.component {
+    props = {
+      userInfo: {
+        type: Object,
+        default: null
+      },
+      val: {
+        type: String,
+        default: ''
+      }
+    }
+    methods = {
+      input (e) {
+        this.val = e.detail.value
+      },
+      search () {
+        let pages = getCurrentPages()
+        let curPage = pages[pages.length - 1]
+        console.log(curPage.route)
+        if (this.val && curPage.route !== 'pages/search') {
+          this.$root.$navigate({url: `search?val=${this.val}`})
+        } else if (this.val && curPage.route === 'pages/search') {
+          this.$emit('some-event', this.val)
+        } else {
+          tip.error('请输入关键字')
+        }
+      }
+    }
+  }
+</script>

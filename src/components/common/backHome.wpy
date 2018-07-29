@@ -1,0 +1,35 @@
+<style lang="less">
+  .back-home {
+    width:80rpx;
+    height:80rpx;
+    position:fixed;
+    bottom:50rpx;
+    right:30rpx;
+    z-index:999;
+    background:rgba(102,102,102,0.8);
+    line-height:80rpx;
+    text-align:center;
+    border-radius: 3px;
+    .icon-home {
+      font-size: 40rpx;
+      color:#fff;
+    }
+  }  
+</style>
+<template>
+  <view class="back-home">
+    <span class="iconfont icon-home" @tap="backHome"></span>  
+  </view> 
+</template>
+<script>
+import wepy from 'wepy'
+export default class BackHome extends wepy.component {
+  methods = {
+    backHome () {
+      wx.navigateTo({
+        url: 'index'
+      })
+    }
+  }
+}
+</script>

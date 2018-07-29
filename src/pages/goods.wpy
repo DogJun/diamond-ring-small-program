@@ -1,0 +1,329 @@
+<style lang="less">
+@import "../styles/mixin.less";
+@theme: #5f7580;
+swiper {
+  height: 350rpx;
+}
+.swiper image {
+  width: 100%;
+  height: 100%;
+}
+.product-info {
+  padding: 0 40rpx;
+  .info-header {
+    padding:50rpx 40rpx 28rpx;
+    border-bottom: 2px solid #bcbcbc;
+    .name {
+      display: block;
+      color: #4d4d4d;
+      font-size: 36rpx;
+      margin-bottom: 20rpx;
+    }
+    .price {
+      display: block;
+      color: @theme;
+      font-size: 32rpx;
+    }
+  }
+  .info-content {
+    background: #fff;
+    margin-top: 20rpx;
+    .info-box {
+      padding: 36rpx 50rpx;
+      border-bottom: 2px solid #d5d5d5;
+      &:last-child {
+        border-bottom: 0;
+      }
+      .box-header {
+        color: @theme;
+        font-weight: bold;
+        font-size: 36rpx;
+        margin-bottom: 36rpx;
+      }
+      .box-content {
+        .item {
+          display: block;
+          border-bottom: 1px solid #eee;
+          text {
+            display: inline-block;
+            font-size: 32rpx;
+            line-height: 1.8;
+          }
+          .item-left {
+            width: 90rpx;
+            color: #646464;
+            font-weight: 500;
+          }
+          .item-right {
+            color: @theme;
+          }
+        }
+      }
+    }
+  }
+}
+.product-others {
+  padding: 0 40rpx;
+  .others-header {
+    font-size: 36rpx;
+    font-weight: bold;
+    color: @theme;
+    padding: 20rpx 0 20rpx 50rpx;
+    border-bottom: 2px solid #bcbcbc;
+  }
+  .others-list {
+    display: flex;
+    white-space: nowrap;
+    .product {
+      display: inline-block;
+      width: 318rpx;
+      background: #fff;
+      margin: 14rpx;
+      .product-img {
+        width: 100%;
+        height: 372rpx;
+        padding: 30rpx 0;
+        border-bottom: 2px solid #ececec;
+        image {
+          max-width: 100%;
+          height: 100%;
+        }
+      }
+      .product-name {
+        width: 100%;
+        // height: 82rpx;
+        border-bottom: 2px solid #ececec;
+        padding: 0 10rpx;
+        box-sizing: border-box;
+        text {
+          color: #686868;
+          font-size: 28rpx;
+          overflow : hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
+      }
+      .product-price {
+        width: 100%;
+        height: 56rpx;
+        padding: 0 10rpx;
+        text {
+          display: inline-block;
+          width: 100%;
+          line-height: 56rpx;
+          font-size: 36rpx;
+          color: #546c78;
+          .line-ellipsis()
+        }
+      }
+    }
+  }
+}
+</style>
+
+<template>
+  <view class="container">
+    <!-- 轮播图 -->
+    <swiper class="swiper" wx:if="{{goodsInfo.imgUrls}}">
+      <block wx:for="{{goodsInfo.imgUrls}}" wx:key="key">
+        <swiper-item>
+          <image src="{{item}}" class="slide-image" mode="aspectFill" @tap="preview({{item}})"/>
+        </swiper-item>
+      </block>
+    </swiper>
+    <!-- 产品信息 -->
+    <view class="product-info" wx:if="{{goodsInfo}}">
+      <view class="info-header">
+        <text class="name">{{goodsInfo.cname}}</text>
+        <text class="price">￥{{goodsInfo.price}}</text>
+      </view>
+      <view class="info-content">
+        <view class="info-box">
+          <view class="box-content">
+            <view class="item" wx:if="goodsInfo.series">
+              <text class="item-left">系列</text>
+              <text class="item-right">{{goodsInfo.series}}</text>
+            </view>
+            <view class="item" wx-if="{{goodsInfo.number}}">
+              <text class="item-left">编号</text>
+              <text class="item-right">{{goodsInfo.number}}</text>
+            </view>
+            <view class="item" wx-if="{{goodsInfo.quality}}">
+              <text class="item-left">材质</text>
+              <text class="item-right">{{goodsInfo.quality}}</text>
+            </view>
+            <view class="item" wx-if="{{goodsInfo. material}}">
+              <text class="item-left">材料</text>
+              <text class="item-right">{{goodsInfo. material}}</text>
+            </view>
+            <view class="item" wx-if="{{goodsInfo.describe}}">
+              <text class="item-left">描述</text>
+              <text class="item-right">{{goodsInfo.describe}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 其他产品 -->
+    <view class="product-others">
+      <view class="others-header">同系列产品</view>
+      <scroll-view scroll-x style="width: 100%" class="others-list">
+        <navigator class="product"
+              wx:for="{{product}}"
+              wx:key="index"
+              wx:for-index="index"
+              wx:for-item="item"
+              url="/pages/goods?id={{item.uuid}}&brandId={{item.brandUuid}}&seriesId={{item.seriesUuid}}">
+          <view class="product-img">
+            <image src="{{item.imgurl}}" mode="aspectFill" lazy-load="true"></image>
+          </view>
+          <view class="product-name">
+            <text>{{item.cname}}</text>
+          </view>
+          <view class="product-price">
+            <text>￥{{item.price}}</text>
+          </view>
+        </navigator>
+      </scroll-view>
+      <!--暂无数据显示-->
+      <placeholder :show.sync="isEmpty" message="暂无发现数据"></placeholder>
+    </view>
+    <!-- 回到首页 -->
+    <backhome></backhome>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Placeholder from '../components/common/placeholder'
+  import BackHome from '../components/common/backHome'
+  import api from '../common/api'
+  import tip from '../utils/tip'
+  import {fmoney} from '../utils/utils'
+  export default class Goods extends wepy.page {
+    config = {
+      navigationBarTitleText: '产品页'
+    }
+    data = {
+      optionId: '',
+      brandId: '',
+      seriesId: '',
+      goodsInfo: null,
+      product: [],
+      isEmpty: false // 是否有数据
+    }
+    components = {
+      placeholder: Placeholder,
+      backhome: BackHome
+    }
+    onLoad (option) {
+      this.getGoodsDetail(option.id)
+      this.getSameSeries(option.brandId, option.seriesId, option.id)
+      this.optionId = option.id
+      this.brandId = option.brandId
+      this.seriesId = option.seriesId
+    }
+    methods = {
+      // 分享
+      onShareAppMessage: function(res) {
+        if (res.from === 'button') {
+          // 来自页面内转发按钮
+          console.log(res.target)
+        }
+        return {
+          title: '高级珠宝图册',
+          path: `pages/goods?id=${this.optionId}&brandId=${this.brandId}&seriesId=${this.seriesId}`,
+          success: function(res) {
+            // 转发成功
+          },
+          fail: function(res) {
+            // 转发失败
+          }
+        }
+      },
+      preview (currentUrl) {
+        wepy.previewImage({
+          current: currentUrl, // 当前显示图片的http链接
+          urls: this.goodsInfo.imgUrls // 需要预览的图片http链接列表
+        })
+      }
+    }
+    // 获取商品详细信息
+    async getGoodsDetail (id) {
+      const json = await api.getGoodsDetail({
+        query: {
+          uuid: id
+        }
+      })
+      if (json.data.code === 0) {
+        json.data.data.price = fmoney(json.data.data.price)
+        json.data.data.imgUrls = this.fimgurl(json.data.data.imgurl)
+        this.goodsInfo = json.data.data
+      } else {
+        tip.error(json.data.msg)
+      }
+      this.$apply()
+    }
+    async getSameSeries (brandId, seriesId, selfId = '') {
+      const json = await api.getGoodsList({
+        query: {
+          brandUuid: brandId,
+          seriesUuid: seriesId,
+          offset: 0,
+          limit: 1000
+        }
+      })
+      if (json.data.code === 0) {
+        let goodList = json.data.data.rows
+        // let goodList = json.data.data[0].goodList
+        let productArr = []
+        goodList.forEach(item => {
+          if (selfId !== item.uuid) {
+            productArr.push(item)
+          }
+        })
+        if (this.format(productArr).length === 0) {
+          this.isEmpty = true
+          this.product = []
+        } else {
+          this.isEmpty = false
+          this.product = this.format(productArr)
+        }
+      } else {
+        tip.error(json.data.msg)
+      }
+      this.$apply()
+    }
+    // 格式化图片地址信息
+    fimgurl (imgurl) {
+      let imgArr = []
+      try {
+        imgurl = imgurl ? JSON.parse(imgurl) : imgurl
+      } catch (err) {
+        console.log(err)
+      }
+      console.log(imgurl instanceof Array)
+      imgurl.forEach((item) => {
+        console.log(item)
+        imgArr.push(api.imgUrlPre + item.fileUrl)
+      })
+      return imgArr
+    }
+    // 格式化列表信息
+    format (arr) {
+      var newArr = []
+      arr.forEach((item) => {
+        item.price = fmoney(item.price)
+        try {
+          item.imgurl = item.imgurl ? (api.imgUrlPre + JSON.parse(item.imgurl)[0].fileUrl) : api.noImgUrl
+        } catch (err) {
+          console.log(err)
+        }
+        newArr.push(item)
+      })
+      return newArr
+    }
+  }
+</script>

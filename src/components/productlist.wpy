@@ -1,0 +1,81 @@
+<style lang="less">
+  @import "../styles/mixin.less";
+  .brand-list .product {
+    display: inline-block;
+    width: 317rpx;
+    background: #fff;
+    margin: 14rpx;
+    .product-img {
+      width: 100%;
+      height: 372rpx;
+      padding: 30rpx 0;
+      border-bottom: 2px solid #ececec;
+      image {
+        max-width: 100%;
+        height: 100%;
+      }
+    }
+    .product-name {
+      width: 100%;
+      // height: 82rpx;
+      border-bottom: 2px solid #ececec;
+      padding: 0 10rpx;
+      box-sizing: border-box;
+      text {
+        color: #686868;
+        font-size: 28rpx;
+        overflow : hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+      }
+    }
+    .product-price {
+      width: 100%;
+      height: 56rpx;
+      padding: 0 10rpx;
+      text {
+        display: inline-block;
+        width: 100%;
+        line-height: 56rpx;
+        font-size: 36rpx;
+        color: #546c78;
+        .line-ellipsis()
+      }
+    }
+  }
+</style>
+<template>
+  <view class="brand-list">
+    <view class="product" wx:for="{{product}}" wx:key="index" wx:for-index="index" wx:for-item="item">
+      <navigator url="/pages/goods?id={{item.uuid}}&brandId={{item.brandUuid}}&seriesId={{item.seriesUuid}}">
+        <view class="product-img">
+          <image src="{{item.imgurl}}" mode="aspectFill" lazy-load="true"></image>
+        </view>
+        <view class="product-name">
+          <text>{{item.cname}}</text>
+        </view>
+        <view class="product-price">
+          <text>￥{{item.price}}</text>
+        </view>
+      </navigator>
+    </view>
+    <text wx:if="{{isBottom}}">我是有底线的</text>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  export default class Productlist extends wepy.component {
+    props = {
+      product: Array,
+      isBottom: {
+        type: Boolean,
+        default: false
+      }
+    }
+    data = {
+      baseURL: ''
+    }
+  }
+</script>
