@@ -7,7 +7,7 @@
     margin: 14rpx;
     .product-img {
       width: 100%;
-      height: 372rpx;
+      height: 317rpx;
       padding: 30rpx 0;
       border-bottom: 2px solid #ececec;
       image {
@@ -49,12 +49,12 @@
 <template>
   <view class="brand-list">
     <view class="product" wx:for="{{product}}" wx:key="index" wx:for-index="index" wx:for-item="item">
-      <navigator url="/pages/goods?id={{item.uuid}}&brandId={{item.brandUuid}}&seriesId={{item.seriesUuid}}">
+      <navigator url="/pages/goods?id={{item.uuid}}&typeid={{item.typeid}}&mainstoneid={{item.mainstoneid}}">
         <view class="product-img">
           <image src="{{item.imgurl}}" mode="aspectFill" lazy-load="true"></image>
         </view>
         <view class="product-name">
-          <text>{{item.cname}}</text>
+          <text>{{item.title}}</text>
         </view>
         <view class="product-price">
           <text>￥{{item.price}}</text>

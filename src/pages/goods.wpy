@@ -2,7 +2,7 @@
 @import "../styles/mixin.less";
 @theme: #5f7580;
 swiper {
-  height: 350rpx;
+  height: 750rpx;
 }
 .swiper image {
   width: 100%;
@@ -50,7 +50,7 @@ swiper {
             line-height: 1.8;
           }
           .item-left {
-            width: 90rpx;
+            width: 160rpx;
             color: #646464;
             font-weight: 500;
           }
@@ -136,31 +136,39 @@ swiper {
     <!-- 产品信息 -->
     <view class="product-info" wx:if="{{goodsInfo}}">
       <view class="info-header">
-        <text class="name">{{goodsInfo.cname}}</text>
+        <text class="name">{{goodsInfo.title}}</text>
         <text class="price">￥{{goodsInfo.price}}</text>
       </view>
       <view class="info-content">
         <view class="info-box">
           <view class="box-content">
-            <view class="item" wx:if="goodsInfo.series">
-              <text class="item-left">系列</text>
-              <text class="item-right">{{goodsInfo.series}}</text>
-            </view>
-            <view class="item" wx-if="{{goodsInfo.number}}">
-              <text class="item-left">编号</text>
+            <view class="item" wx:if="goodsInfo.number">
+              <text class="item-left">款号</text>
               <text class="item-right">{{goodsInfo.number}}</text>
             </view>
-            <view class="item" wx-if="{{goodsInfo.quality}}">
-              <text class="item-left">材质</text>
-              <text class="item-right">{{goodsInfo.quality}}</text>
+            <view class="item" wx-if="{{goodsInfo.supplier}}">
+              <text class="item-left">供应商</text>
+              <text class="item-right">{{goodsInfo.supplier}}</text>
             </view>
-            <view class="item" wx-if="{{goodsInfo. material}}">
-              <text class="item-left">材料</text>
-              <text class="item-right">{{goodsInfo. material}}</text>
+            <view class="item" wx-if="{{goodsInfo.mainstone}}">
+              <text class="item-left">主石重量</text>
+              <text class="item-right">{{goodsInfo.mainstone}}</text>
             </view>
-            <view class="item" wx-if="{{goodsInfo.describe}}">
-              <text class="item-left">描述</text>
-              <text class="item-right">{{goodsInfo.describe}}</text>
+            <view class="item" wx-if="{{goodsInfo.vicestonesum}}">
+              <text class="item-left">副石数量</text>
+              <text class="item-right">{{goodsInfo.vicestonesum}}</text>
+            </view>
+            <view class="item" wx-if="{{goodsInfo.vicestoneweight}}">
+              <text class="item-left">副石重量</text>
+              <text class="item-right">{{goodsInfo.vicestoneweight}}</text>
+            </view>
+            <view class="item" wx-if="{{goodsInfo.goldweight}}">
+              <text class="item-left">金重</text>
+              <text class="item-right">{{goodsInfo.goldweight}}</text>
+            </view>
+            <view class="item" wx-if="{{goodsInfo.loss}}">
+              <text class="item-left">损耗</text>
+              <text class="item-right">{{goodsInfo.loss}}</text>
             </view>
           </view>
         </view>
@@ -168,7 +176,7 @@ swiper {
     </view>
     <!-- 其他产品 -->
     <view class="product-others">
-      <view class="others-header">同系列产品</view>
+      <view class="others-header">同主石产品</view>
       <scroll-view scroll-x style="width: 100%" class="others-list">
         <navigator class="product"
               wx:for="{{product}}"
@@ -180,7 +188,7 @@ swiper {
             <image src="{{item.imgurl}}" mode="aspectFill" lazy-load="true"></image>
           </view>
           <view class="product-name">
-            <text>{{item.cname}}</text>
+            <text>{{item.title}}</text>
           </view>
           <view class="product-price">
             <text>￥{{item.price}}</text>
@@ -199,7 +207,7 @@ swiper {
   import wepy from 'wepy'
   import Placeholder from '../components/common/placeholder'
   import BackHome from '../components/common/backHome'
-  import api from '../common/api'
+  import { getInfo, imgUrlPre, noImgUrl, getProducts} from '../common/api'
   import tip from '../utils/tip'
   import {fmoney} from '../utils/utils'
   export default class Goods extends wepy.page {
@@ -208,8 +216,8 @@ swiper {
     }
     data = {
       optionId: '',
-      brandId: '',
-      seriesId: '',
+      typeid: '',
+      mainstoneid: '',
       goodsInfo: null,
       product: [],
       isEmpty: false // 是否有数据
@@ -219,11 +227,12 @@ swiper {
       backhome: BackHome
     }
     onLoad (option) {
+      console.log(option.id)
       this.getGoodsDetail(option.id)
-      this.getSameSeries(option.brandId, option.seriesId, option.id)
+      this.getSameSeries(option.typeid, option.mainstoneid, option.id)
       this.optionId = option.id
-      this.brandId = option.brandId
-      this.seriesId = option.seriesId
+      this.typeid = option.typeid
+      this.mainstoneid = option.mainstoneid
     }
     methods = {
       // 分享
@@ -252,7 +261,7 @@ swiper {
     }
     // 获取商品详细信息
     async getGoodsDetail (id) {
-      const json = await api.getGoodsDetail({
+      const json = await getInfo({
         query: {
           uuid: id
         }
@@ -266,13 +275,13 @@ swiper {
       }
       this.$apply()
     }
-    async getSameSeries (brandId, seriesId, selfId = '') {
-      const json = await api.getGoodsList({
+    async getSameSeries (typeid, mainstoneid, selfId = '') {
+      const json = await getProducts({
         query: {
-          brandUuid: brandId,
-          seriesUuid: seriesId,
+          typeid: typeid,
+          mainstoneid: mainstoneid,
           offset: 0,
-          limit: 1000
+          limit: 10000
         }
       })
       if (json.data.code === 0) {
@@ -307,7 +316,7 @@ swiper {
       console.log(imgurl instanceof Array)
       imgurl.forEach((item) => {
         console.log(item)
-        imgArr.push(api.imgUrlPre + item.fileUrl)
+        imgArr.push(imgUrlPre + item.fileUrl)
       })
       return imgArr
     }
@@ -317,7 +326,7 @@ swiper {
       arr.forEach((item) => {
         item.price = fmoney(item.price)
         try {
-          item.imgurl = item.imgurl ? (api.imgUrlPre + JSON.parse(item.imgurl)[0].fileUrl) : api.noImgUrl
+          item.imgurl = item.imgurl ? (imgUrlPre + JSON.parse(item.imgurl)[0].fileUrl) : noImgUrl
         } catch (err) {
           console.log(err)
         }

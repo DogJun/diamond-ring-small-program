@@ -91,6 +91,7 @@
     color: #7d8e97;
     padding: 0 25rpx;
     box-sizing: border-box;
+    text-align:center;
     &:nth-child(odd) {
       margin-right: 28rpx;
     }
@@ -111,12 +112,12 @@
     </view> -->
     <view class="content">
       <view class="brand-header">
-        <text>主石大小</text>
+        <text>主石重量</text>
         <button @tap="openSeries">{{openSeriesText}}</button>
       </view>
       <view class="brand-series">
         <button class="{{allSeriesActive?'active':''}}"
-                @tap="tapAllSeries">所有系列</button>
+                @tap="tapAllSeries">所有款式</button>
         <view class="series-list" wx:if="{{isShowSeries}}">
           <view class="series-box {{item.seriesActive? 'active':''}}"
                 wx:for="{{series}}"
@@ -145,7 +146,7 @@
   import BottomLoadMore from '../components/common/bottomLoadMore'
   import Placeholder from '../components/common/placeholder'
   import BackHome from '../components/common/backHome'
-  import {getTypes, imgUrlPre, noImgUrl, getGoodsList} from '../common/api'
+  import {getTypes, getProducts, imgUrlPre, noImgUrl, getGoodsList} from '../common/api'
   import tip from '../utils/tip'
   import {fmoney} from '../utils/utils'
 
@@ -166,7 +167,7 @@
       isShowSeries: false, // 是否显示系列
       allSeriesActive: true, // 控制所有系列按钮的样式
       optionId: '',
-      brandId: '', // 品牌uuid
+      typeid: '', // 品牌uuid
       seriesid: '', // 系列id
       isEmpty: false, // 是否有数据
       currentPage: 1, // 当前页面
@@ -184,10 +185,10 @@
     }
     onLoad (option) {
       this._getTypes(option.typeid)
-      // this.getGoods(option.uuid)
+      this.getGoods(option.typeid)
       // this.optionId = option.id
       // this.brandId = option.uuid
-      this.typeId = option.typeid
+      this.typeid = option.typeid
     }
     methods = {
       // 分享
@@ -230,7 +231,7 @@
           }
         }
         // 获取系列对应产品
-        this.getGoods(this.brandId, seriesId)
+        this.getGoods(this.typeid, seriesId)
       }
     }
     // 获取品牌系列信息
@@ -244,7 +245,8 @@
         console.log(json.data)
         let seriesArr = []
         json.data.data.forEach(item => {
-          seriesArr.push({'seriesId': item.uuid, 'seriesName': item.cname, 'seriesActive': false})
+          console.log(item)
+          seriesArr.push({'seriesId': item.id, 'seriesName': item.mainstone, 'seriesActive': false})
         })
         this.series = seriesArr
         console.log(seriesArr)
@@ -254,23 +256,23 @@
       this.$apply()
     }
     // 获取商品信息
-    async getGoods (brandUuid, seriesUuid = '', offset = 0) {
+    async getGoods (typeid, mainstoneid = '', offset = 0) {
       let query
-      if (seriesUuid) {
+      if (mainstoneid) {
         query = {
-          brandUuid: brandUuid,
-          seriesUuid: seriesUuid,
+          typeid: typeid,
+          mainstoneid: mainstoneid,
           offset: offset,
           limit: LIMIT
         }
       } else {
         query = {
-          brandUuid: brandUuid,
+          typeid: typeid,
           offset: offset,
           limit: LIMIT
         }
       }
-      const json = await getGoodsList({
+      const json = await getProducts({
         query: query
       })
       // let seriesArr = []
@@ -291,32 +293,6 @@
           console.log('暂无数据')
           this.isEmpty = true
         }
-        // if (this.format(productArr).length === 0) {
-        //   this.isEmpty = true
-        //   this.product = []
-        // } else {
-        //   this.isEmpty = false
-        //   this.product = this.format(productArr)
-        // }
-        // 数据处理，get到所有的系列信息
-        // if (!seriesUuid) {
-        //   json.data.data.forEach(item => {
-        //     // seriesArr.push({'seriesId': item.uuid, 'seriesName': item.cname, 'seriesActive': false})
-        //     productArr = productArr.concat(item.goodList)
-        //   })
-        //   // this.series = seriesArr
-        // } else {
-        //   json.data.data.forEach(item => {
-        //     productArr = productArr.concat(item.goodList)
-        //   })
-        // }
-        // if (this.format(productArr).length === 0) {
-        //   this.isEmpty = true
-        //   this.product = []
-        // } else {
-        //   this.isEmpty = false
-        //   this.product = this.format(productArr)
-        // }
       } else {
         tip.error(json.data.msg)
       }

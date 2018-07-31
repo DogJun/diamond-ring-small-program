@@ -1,7 +1,9 @@
 import { wxRequest } from '../utils/wxRequest'
 
 export const imgUrlPre = 'https://jewelry.timovips.com'
-export const noImgUrl = 'http://p40ssgysb.bkt.clouddn.com/noimage.jpeg'
+// export const noImgUrl = 'http://p40ssgysb.bkt.clouddn.com/noimage.jpeg'
+export const noImgUrl = '../images/noimage.jpeg'
+
 export const apiPre = 'https://jewelry.timovips.com/api'
 // const apiPre = 'https://result.eolinker.com/Fauq4sib11ae9fe69c890891c81105fb89c7e0a92234310?uri='
 // 查询品牌列表
@@ -22,3 +24,8 @@ export const search = (params) => wxRequest(params, apiPre + '/goods/searchGoods
 export const getAd = (params) => wxRequest(params, apiPre + '/diamond/getAd')
 // 通过钻戒类型获取主石分类
 export const getTypes = (params) => wxRequest(params, apiPre + '/diamond/queryMainStore')
+// 通过主石获取产品
+export const getProducts = (params) => wxRequest(params, apiPre + '/diamond/queryGoodsByTypeAndMS')
+// 获取产品详细信息
+export const getInfo = (params) => wxRequest(params, apiPre + '/diamond/getGood')
+
